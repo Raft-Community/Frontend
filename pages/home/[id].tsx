@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/router';
+
 function SendPost() {
   return (
     <div className="h-5/6 w-full p-4 justify-center border-b-2">
@@ -120,7 +122,7 @@ function MemberList() {
 function SystemInfo() {
   const infos = [
     { id: '1', content: 'Instance 1 want to join' },
-    { id: '2', content: 'Instance 2 want to join' },
+    { id: '2', content: 'Instance 2 want to kick Instance 3' },
     { id: '3', content: 'Instance 3 want to join' },
   ];
   return (
@@ -149,8 +151,9 @@ function SystemInfo() {
   );
 }
 
-export default function Home({ params }: { params: { id: string } }) {
-  const id = params.id;
+export default function Home() {
+  const router = useRouter();
+  const { id } = router.query as { id: string };
 
   return (
     <>
