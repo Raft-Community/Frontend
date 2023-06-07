@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 function InstanceCard({ name, id }: { name: string; id: string }) {
   return (
-    <div className="card h-56 bg-gray-300 shadow-xl">
+    <div className="card h-56 bg-base-300 shadow-xl">
       <Link href={`/home/${id}`} className="h-full">
         <div className="card-body">
           <h1 className="card-title">{name}</h1>
@@ -76,7 +76,7 @@ export default function Instances() {
   
   return (
     <>
-      <div className="card h-4/5 w-4/5 bg-gray-100 shadow-xl overflow-auto">
+      <div className="card h-4/5 w-4/5 bg-base-200 shadow-xl overflow-auto">
         <div className="card-body">
           <h1 className="card-title">Instances</h1>
           <div className="h-full w-full grid grid-cols-4 gap-8 p-1">
