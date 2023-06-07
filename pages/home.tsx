@@ -63,7 +63,17 @@ function InfoCard({ title, child, scroll }: { title: string; child: React.ReactN
   );
 }
 
-function BasicInfo({ id }: { id: string }) {
+function BasicInfo({
+  name,
+  ip,
+  port,
+  id,
+}: {
+  name: string;
+  ip: string;
+  port: number;
+  id: string;
+}) {
   return (
     <table className="table-auto h-full w-full">
       <tbody>
@@ -72,12 +82,12 @@ function BasicInfo({ id }: { id: string }) {
           <td className="border px-4 py-2">{id}</td>
         </tr>
         <tr>
-          <td className="border px-4 py-2">ip</td>
-          <td className="border px-4 py-2">127.0.0.1</td>
+          <td className="border px-4 py-2">name</td>
+          <td className="border px-4 py-2">{name}</td>
         </tr>
         <tr>
-          <td className="border px-4 py-2">port</td>
-          <td className="border px-4 py-2">2333</td>
+          <td className="border px-4 py-2">addr</td>
+          <td className="border px-4 py-2">{ip}:{port}</td>
         </tr>
         <tr>
           <td className="border px-4 py-2">status</td>
@@ -153,7 +163,8 @@ function SystemInfo() {
 
 export default function Home() {
   const router = useRouter();
-  const { id } = router.query as { id: string };
+  const { name, ip, port, id } = router.query as unknown as { name: string; ip: string; port: number; id: string };
+  console.log(router.query);
 
   return (
     <>
@@ -174,7 +185,15 @@ export default function Home() {
           <Posts />
         </div>
         <div className="h-full w-1/3 grid grid-rows-3 grid-flow-col gap-4">
-          <InfoCard title="Node Basic Info" child={<BasicInfo id={id} />} />
+          <InfoCard
+            title="Node Basic Info"
+            child={<BasicInfo
+              id={id}
+              name={name}
+              ip={ip}
+              port={port}
+            />}
+          />
           <InfoCard title="Member List" scroll child={<MemberList />} />
           <InfoCard title="System Info" scroll child={<SystemInfo />} />
         </div>

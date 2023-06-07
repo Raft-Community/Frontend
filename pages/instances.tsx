@@ -2,10 +2,82 @@
 
 import Link from 'next/link';
 
-function InstanceCard({ name, id }: { name: string; id: string }) {
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
+
+type IGetClusterMember = {
+  error: string;
+  members: {
+    port: number;
+    ip: string;
+    name: string;
+    id: string;
+  }[];
+};
+
+export const getServerSideProps: GetServerSideProps<{
+  response: IGetClusterMember;
+}> = async () => {
+  const res = {
+    error: 'OK',
+    members: [
+      {
+        name: 'Instance 1',
+        ip: '127.0.0.1',
+        port: 2333,
+        id: '1',
+      },
+      {
+        name: 'Instance 2',
+        ip: '127.0.0.1',
+        port: 2334,
+        id: '2',
+      },
+      {
+        name: 'Instance 3',
+        ip: '127.0.0.1',
+        port: 2335,
+        id: '3',
+      },
+      {
+        name: 'Instance 4',
+        ip: '127.0.0.1',
+        port: 2336,
+        id: '4',
+      },
+      {
+        name: 'Instance 5',
+        ip: '127.0.0.1',
+        port: 2337,
+        id: '5',
+      },
+      {
+        name: 'Instance 6',
+        ip: '127.0.0.1',
+        port: 2338,
+        id: '6',
+      },
+    ],
+  };
+  return { props: { response: res } };
+};
+
+function InstanceCard({
+  name,
+  ip,
+  port,
+  id,
+}: {
+  name: string;
+  ip: string;
+  port: number;
+  id: string;
+}) {
   return (
     <div className="card h-56 bg-base-300 shadow-xl">
-      <Link href={`/home/${id}`} className="h-full">
+      <Link
+        href={`/home/?name=${name}&id=${id}&ip=${ip}&port=${port}`}
+        className="h-full"
+      >
         <div className="card-body">
           <h1 className="card-title">{name}</h1>
           <p className="card-text">Instance id: {id}</p>
@@ -72,33 +144,10 @@ function AddInstance() {
   );
 }
 
-export default function Instances() {
-  const instances = [
-    {
-      name: 'Instance 1',
-      id: '1',
-    },
-    {
-      name: 'Instance 2',
-      id: '2',
-    },
-    {
-      name: 'Instance 3',
-      id: '3',
-    },
-    {
-      name: 'Instance 4',
-      id: '4',
-    },
-    {
-      name: 'Instance 5',
-      id: '5',
-    },
-    {
-      name: 'Instance 6',
-      id: '6',
-    },
-  ];
+export default function Instances({
+  response,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const instances = response.members;
 
   return (
     <>
@@ -110,6 +159,8 @@ export default function Instances() {
               <InstanceCard
                 name={instance.name}
                 id={instance.id}
+                ip={instance.ip}
+                port={instance.port}
                 key={instance.id}
               />
             ))}
