@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Instance {
+  id     String @id @default(uuid())
+  name   String
+  port   Int
+  ip     String
+  status String @default("pending") // pending, online
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Blog         Blog[]
+  ElectCreater Elect[]  @relation("creator")
+  Electee      Elect[]  @relation("electee")
+  Vote         Vote[]
+}
+
+model Blog {
+  id        String   @id @default(uuid())
+  content   String
+  author    Instance @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Elect {
+  id        String   @id @default(uuid())
+  content   String?
+  creator   Instance @relation("creator", fields: [creatorId], references: [id])
+  creatorId String
+  electee   Instance @relation("electee", fields: [electeeId], references: [id])
+  electeeId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Vote      Vote[]
+}
+
+model Vote {
+  id      String   @id @default(uuid())
+  voter   Instance @relation(fields: [voterId], references: [id])
+  voterId String
+  elect   Elect    @relation(fields: [electId], references: [id])
+  electId String
+}
