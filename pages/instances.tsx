@@ -1,64 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
-
-type IGetClusterMember = {
-  error: string;
-  members: {
-    port: number;
-    ip: string;
-    name: string;
-    id: string;
-  }[];
-};
+import { IGetClusterMember, getCluster } from './api/cluster';
 
 export const getServerSideProps: GetServerSideProps<{
   response: IGetClusterMember;
 }> = async () => {
-  const res = {
-    error: 'OK',
-    members: [
-      {
-        name: 'Instance 1',
-        ip: '127.0.0.1',
-        port: 2333,
-        id: '1',
-      },
-      {
-        name: 'Instance 2',
-        ip: '127.0.0.1',
-        port: 2334,
-        id: '2',
-      },
-      {
-        name: 'Instance 3',
-        ip: '127.0.0.1',
-        port: 2335,
-        id: '3',
-      },
-      {
-        name: 'Instance 4',
-        ip: '127.0.0.1',
-        port: 2336,
-        id: '4',
-      },
-      {
-        name: 'Instance 5',
-        ip: '127.0.0.1',
-        port: 2337,
-        id: '5',
-      },
-      {
-        name: 'Instance 6',
-        ip: '127.0.0.1',
-        port: 2338,
-        id: '6',
-      },
-    ],
-  };
-  return { props: { response: res } };
+  return { props: { response: getCluster() } };
 };
 
 function InstanceCard({
