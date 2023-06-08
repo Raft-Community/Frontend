@@ -1,12 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/router';
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
+import { IGetMessage, Message, getMessage } from './api/getMessage';
+import { useState } from 'react';
 
-function updateMessage() {
-  // TODO
-}
+export const getServerSideProps: GetServerSideProps<{
+  response: IGetMessage;
+}> = async () => {
+  return { props: { response: getMessage() } };
+};
 
-function SendPost() {
+function SendPost({ setMessages }: { setMessages: React.Dispatch<React.SetStateAction<Message[]>>; }) {
   const router = useRouter();
 
   function postBlog() {
@@ -26,7 +31,17 @@ function SendPost() {
         if (data.error != 'OK') {
           // TODO
         } else {
-          updateMessage();
+          // update message
+          fetch('/api/getMessage')
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.error != 'OK') {
+                // TODO
+              } else {
+                setMessages(data.message);
+              }
+            }
+          );
         }
       });
   }
@@ -46,17 +61,19 @@ function SendPost() {
   );
 }
 
-function Posts() {
+function Posts({ messages }: { messages: Message[] }) {
   return (
-    <div className="min-h-2/3 w-full flex flex-col p-6 pt-8 bg-base-200">
-      <PostCard />
-      <PostCard />
-      <PostCard />
+    <div className="min-h-2/3 w-full flex flex-col p-6 pt-8">
+      {messages
+        .filter((message) => message.type === 'normal')
+        .map((message) => (
+          <PostCard content={message.content} key={message.messageId} />
+        ))}
     </div>
   );
 }
 
-function PostCard() {
+function PostCard({ content }: { content: string }) {
   return (
     <div className="card lg:card-side shadow-xl my-2 bg-base-100">
       <figure>
@@ -71,10 +88,10 @@ function PostCard() {
       </figure>
       <div className="card-body">
         <h2 className="card-title">New album is released!</h2>
-        <p>Click the button to listen on Spotiwhy app.</p>
-        <div className="card-actions justify-end">
+        <p>{content}</p>
+        {/* <div className="card-actions justify-end">
           <button className="btn btn-primary">Listen</button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
@@ -157,13 +174,13 @@ function MemberList() {
         targetServerPort,
         targetServerId,
       }),
-    }).then((res) => res.json())
+    })
+      .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
           // TODO
         }
-      }
-    );
+      });
   }
 
   const members = [
@@ -200,27 +217,22 @@ function MemberList() {
   );
 }
 
-function SystemInfo() {
+function SystemInfo({ messages }: { messages: Message[] }) {
   function acceptChange(id: string) {
     fetch('/api/acceptMemberChange', {
       method: 'POST',
       body: JSON.stringify({
         messageId: id,
       }),
-    }).then((res) => res.json())
+    })
+      .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
           // TODO
         }
-      }
-    );
+      });
   }
-  
-  const infos = [
-    { id: '1', content: 'Instance 1 want to join' },
-    { id: '2', content: 'Instance 2 want to kick Instance 3' },
-    { id: '3', content: 'Instance 3 want to join' },
-  ];
+
   return (
     <div className="h-full w-full">
       <table className="table-auto h-full w-full">
@@ -231,24 +243,33 @@ function SystemInfo() {
           </tr>
         </thead>
         <tbody>
-          {infos.map((info) => (
-            <tr key={info.id}>
-              <td className="border px-4 py-2">{info.content}</td>
-              <td className="border px-4 py-2 flex justify-around">
-                <button className="btn btn-success btn-sm"
-                  onClick={() => acceptChange(info.id)}
-                >Accept</button>
-                <button className="btn btn-error btn-sm">Reject</button>
-              </td>
-            </tr>
-          ))}
+          {messages
+            .filter((message) => message.type === 'memberChange')
+            .map((message) => (
+              <tr key={message.messageId}>
+                <td className="border px-4 py-2">{message.content}</td>
+                <td className="border px-4 py-2 flex justify-around">
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={() => acceptChange(message.messageId)}
+                  >
+                    Accept
+                  </button>
+                  <button className="btn btn-error btn-sm">Reject</button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>
   );
 }
 
-export default function Home() {
+export default function Home({
+  response,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [messages, setMessages] = useState<Message[]>(response.message);
+
   const router = useRouter();
   const { name, ip, port, id } = router.query as unknown as {
     name: string;
@@ -256,13 +277,12 @@ export default function Home() {
     port: number;
     id: string;
   };
-  console.log(router.query);
 
   return (
     <>
       <div className="h-full w-full bg-base-100 flex flex-row">
-        <div className="h-full w-2/3 flex flex-col overflow-y-scroll">
-          <div className="h-1/3 w-full flex flex-col">
+        <div className="h-full w-2/3 flex flex-col overflow-y-scroll bg-base-200">
+          <div className="h-1/3 w-full flex flex-col bg-base-100">
             <div className="h-1/6 w-full flex items-center sticky top-0 bg-base-300">
               <button
                 className="btn btn-outline btn-sm"
@@ -272,9 +292,9 @@ export default function Home() {
               </button>
               <h1 className="text-xl font-bold pl-2">Raft Community</h1>
             </div>
-            <SendPost />
+            <SendPost setMessages={setMessages} />
           </div>
-          <Posts />
+          <Posts messages={messages} />
         </div>
         <div className="h-full w-1/3 grid grid-rows-3 grid-flow-col gap-4">
           <InfoCard
@@ -282,7 +302,11 @@ export default function Home() {
             child={<BasicInfo id={id} name={name} ip={ip} port={port} />}
           />
           <InfoCard title="Member List" scroll child={<MemberList />} />
-          <InfoCard title="System Info" scroll child={<SystemInfo />} />
+          <InfoCard
+            title="System Info"
+            scroll
+            child={<SystemInfo messages={messages} />}
+          />
         </div>
       </div>
     </>
