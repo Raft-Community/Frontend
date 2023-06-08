@@ -2,7 +2,36 @@
 
 import { useRouter } from 'next/router';
 
+function updateMessage() {
+  // TODO
+}
+
 function SendPost() {
+  const router = useRouter();
+  
+  function postBlog() {
+    const content = document.querySelector('textarea')?.value;
+    if (!content) {
+      return;
+    }
+    fetch('/api/blogPost', {
+      method: 'POST',
+      body: JSON.stringify({
+        blogContent: content,
+        posterId: router.query.id,
+      }),
+    }).then(res => res.json())
+      .then(data => {
+        if (data.error != 'OK') {
+          // TODO
+        } else {
+          console.log(data);
+          updateMessage();
+        }
+      }
+    );
+  }
+  
   return (
     <div className="h-5/6 w-full p-4 justify-center border-b-2">
       <textarea
@@ -10,7 +39,7 @@ function SendPost() {
         placeholder="Input your idea here..."
       ></textarea>
       <div className="h-1/6 w-full flex items-center justify-end">
-        <button className="btn btn-primary btn-sm mt-1">Send</button>
+        <button className="btn btn-primary btn-sm mt-1" onClick={postBlog}>Send</button>
       </div>
     </div>
   );
