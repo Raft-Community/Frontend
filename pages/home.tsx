@@ -8,7 +8,7 @@ function updateMessage() {
 
 function SendPost() {
   const router = useRouter();
-  
+
   function postBlog() {
     const content = document.querySelector('textarea')?.value;
     if (!content) {
@@ -20,18 +20,17 @@ function SendPost() {
         blogContent: content,
         posterId: router.query.id,
       }),
-    }).then(res => res.json())
-      .then(data => {
+    })
+      .then((res) => res.json())
+      .then((data) => {
         if (data.error != 'OK') {
           // TODO
         } else {
-          console.log(data);
           updateMessage();
         }
-      }
-    );
+      });
   }
-  
+
   return (
     <div className="h-5/6 w-full p-4 justify-center border-b-2">
       <textarea
@@ -39,7 +38,9 @@ function SendPost() {
         placeholder="Input your idea here..."
       ></textarea>
       <div className="h-1/6 w-full flex items-center justify-end">
-        <button className="btn btn-primary btn-sm mt-1" onClick={postBlog}>Send</button>
+        <button className="btn btn-primary btn-sm mt-1" onClick={postBlog}>
+          Send
+        </button>
       </div>
     </div>
   );
@@ -79,10 +80,22 @@ function PostCard() {
   );
 }
 
-function InfoCard({ title, child, scroll }: { title: string; child: React.ReactNode; scroll?: boolean}) {
+function InfoCard({
+  title,
+  child,
+  scroll,
+}: {
+  title: string;
+  child: React.ReactNode;
+  scroll?: boolean;
+}) {
   return (
     <div className="w-full flex justify-center items-center p-2">
-      <div className={`card w-full h-full shadow-xl bg-base-200 ${scroll ? "overflow-y-scroll" : ""}`}>
+      <div
+        className={`card w-full h-full shadow-xl bg-base-200 ${
+          scroll ? 'overflow-y-scroll' : ''
+        }`}
+      >
         <div className="card-body py-4 px-6">
           <h2 className="card-title">{title}</h2>
           {child}
@@ -116,7 +129,9 @@ function BasicInfo({
         </tr>
         <tr>
           <td className="border px-4 py-2">addr</td>
-          <td className="border px-4 py-2">{ip}:{port}</td>
+          <td className="border px-4 py-2">
+            {ip}:{port}
+          </td>
         </tr>
         <tr>
           <td className="border px-4 py-2">status</td>
@@ -129,10 +144,32 @@ function BasicInfo({
 }
 
 function MemberList() {
+  function kickOffMember(id: string) {
+    const {
+      ip: targetServerIp,
+      port: targetServerPort,
+      id: targetServerId,
+    } = members.find((member) => member.id === id)!;
+    fetch('/api/GetHimOut', {
+      method: 'POST',
+      body: JSON.stringify({
+        targetServerIp,
+        targetServerPort,
+        targetServerId,
+      }),
+    }).then((res) => res.json())
+      .then((data) => {
+        if (data.error != 'OK') {
+          // TODO
+        }
+      }
+    );
+  }
+
   const members = [
-    { id: '1', name: 'Instance 1' },
-    { id: '2', name: 'Instance 2' },
-    { id: '3', name: 'Instance 3' },
+    { id: '1', name: 'Instance 1', ip: '127.0.0.1', port: '2333' },
+    { id: '2', name: 'Instance 2', ip: '127.0.0.1', port: '2334' },
+    { id: '3', name: 'Instance 3', ip: '127.0.0.1', port: '2335' },
   ];
   return (
     <div className="h-full w-full">
@@ -144,14 +181,19 @@ function MemberList() {
           </tr>
         </thead>
         <tbody>
-          {members.map((member) =>
+          {members.map((member) => (
             <tr key={member.id}>
               <td className="border px-4 py-2">{member.name}</td>
               <td className="border px-4 py-2 flex justify-center">
-                <button className="btn btn-error btn-sm">kick</button>
+                <button
+                  className="btn btn-error btn-sm"
+                  onClick={() => kickOffMember(member.id)}
+                >
+                  kick
+                </button>
               </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
     </div>
@@ -174,7 +216,7 @@ function SystemInfo() {
           </tr>
         </thead>
         <tbody>
-          {infos.map((info) =>
+          {infos.map((info) => (
             <tr key={info.id}>
               <td className="border px-4 py-2">{info.content}</td>
               <td className="border px-4 py-2 flex justify-around">
@@ -182,17 +224,21 @@ function SystemInfo() {
                 <button className="btn btn-error btn-sm">Reject</button>
               </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
     </div>
-    
   );
 }
 
 export default function Home() {
   const router = useRouter();
-  const { name, ip, port, id } = router.query as unknown as { name: string; ip: string; port: number; id: string };
+  const { name, ip, port, id } = router.query as unknown as {
+    name: string;
+    ip: string;
+    port: number;
+    id: string;
+  };
   console.log(router.query);
 
   return (
@@ -216,12 +262,7 @@ export default function Home() {
         <div className="h-full w-1/3 grid grid-rows-3 grid-flow-col gap-4">
           <InfoCard
             title="Node Basic Info"
-            child={<BasicInfo
-              id={id}
-              name={name}
-              ip={ip}
-              port={port}
-            />}
+            child={<BasicInfo id={id} name={name} ip={ip} port={port} />}
           />
           <InfoCard title="Member List" scroll child={<MemberList />} />
           <InfoCard title="System Info" scroll child={<SystemInfo />} />
