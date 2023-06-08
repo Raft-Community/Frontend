@@ -24,27 +24,36 @@ function InstanceCard({
   id: string;
   status: string;
 }) {
+  function CardConetnt() {
+    return (
+      <div className="card-body">
+        <h1 className="card-title">{name}</h1>
+        <p className="card-text truncate">ID: {id}</p>
+        <p className="card-text">IP: {ip}</p>
+        <p className="card-text">Port: {port}</p>
+        <p className="card-text">
+          Status:&nbsp;
+          {status === 'online' ? (
+            <span className="text-green-600">Online</span>
+          ) : (
+            <span className="text-orange-500">Pending</span>
+          )}
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="card h-56 bg-base-300 shadow-xl">
-      <Link
-        href={`/home/?name=${name}&id=${id}&ip=${ip}&port=${port}`}
-        className="h-full"
-      >
-        <div className="card-body">
-          <h1 className="card-title">{name}</h1>
-          <p className="card-text">ID: {id}</p>
-          <p className="card-text">IP: {ip}</p>
-          <p className="card-text">Port: {port}</p>
-          <p className="card-text">
-            Status:&nbsp;
-            {status === 'online' ? (
-              <span className="text-green-600">Online</span>
-            ) : (
-              <span className="text-orange-500">Pending</span>
-            )}
-          </p>
-        </div>
-      </Link>
+      {status === 'online' ? (
+        <Link
+          href={`/home/?name=${name}&id=${id}&ip=${ip}&port=${port}`}
+          className="h-full"
+        >
+          <CardConetnt />
+        </Link>
+      ) : (
+        <CardConetnt />
+      )}
     </div>
   );
 }
@@ -238,7 +247,9 @@ export default function Instances({
           setMembers(data.members);
           setInstances((prev) => {
             const newLocalInstances = prev.map((instance) => {
-              const member = members.find((member) => member.id === instance.id);
+              const member = members.find(
+                (member) => member.id === instance.id
+              );
               if (member) {
                 return member;
               } else {

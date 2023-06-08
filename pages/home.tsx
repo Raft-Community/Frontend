@@ -18,7 +18,7 @@ function SendPost({
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }) {
   const router = useRouter();
-  
+
   useEffect(() => {
     const interval = setInterval(updateMessage, 1000);
     return () => clearInterval(interval);
@@ -152,7 +152,7 @@ function BasicInfo({
       <tbody>
         <tr>
           <td className="border px-4 py-2">id</td>
-          <td className="border px-4 py-2">{id}</td>
+          <td className="border px-4 py-2 truncate">{id}</td>
         </tr>
         <tr>
           <td className="border px-4 py-2">name</td>
@@ -243,20 +243,19 @@ function MemberList({
         </thead>
         <tbody>
           {members
-            .filter(
-              (member) =>
-                member.status != 'pending' && member.id != router.query.id
-            )
+            .filter((member) => member.status != 'pending')
             .map((member) => (
               <tr key={member.id}>
                 <td className="border px-4 py-2">{member.name}</td>
-                <td className="border px-4 py-2 flex justify-center">
-                  <button
-                    className="btn btn-error btn-sm"
-                    onClick={() => kickOffMember(member.id)}
-                  >
-                    kick
-                  </button>
+                <td className="border h-full w-full px-4 py-2 flex justify-center items-center">
+                  {member.id != router.query.id && (
+                    <button
+                      className="btn btn-error btn-sm"
+                      onClick={() => kickOffMember(member.id)}
+                    >
+                      kick
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -297,7 +296,7 @@ function SystemInfo({ messages }: { messages: Message[] }) {
             .map((message) => (
               <tr key={message.messageId}>
                 <td className="border px-4 py-2">{message.content}</td>
-                <td className="border px-4 py-2 flex justify-around">
+                <td className="border h-full w-full px-4 py-2 flex justify-around items-center">
                   <button
                     className="btn btn-success btn-sm"
                     onClick={() => acceptChange(message.messageId)}
