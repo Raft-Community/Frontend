@@ -22,5 +22,6 @@ export function postCreateNewNode({
 }) {
   return {
     error: 'OK',
+    id: Math.random().toString(),
   };
 }

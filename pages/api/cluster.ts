@@ -50,7 +50,7 @@ export function getCluster() {
         status: 'online',
       },
       {
-        name: 'Instance 5',
+        name: 'Instance 5' + Math.random(),
         ip: '127.0.0.1',
         port: 2337,
         id: '5',

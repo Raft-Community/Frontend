@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
 import { IGetClusterMember, ClusterMember, getCluster } from './api/cluster';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const getServerSideProps: GetServerSideProps<{
   response: IGetClusterMember;
@@ -61,12 +61,6 @@ function AddInstanceForm({
       document.getElementById('knownServerIp') as HTMLInputElement,
       document.getElementById('knownServerPort') as HTMLInputElement,
     ];
-    console.log(
-      name.value,
-      port.value,
-      knownServerIp.value,
-      knownServerPort.value
-    );
     fetch('/api/createNewNode', {
       method: 'POST',
       body: JSON.stringify({
@@ -79,15 +73,14 @@ function AddInstanceForm({
         if (data.error != 'OK') {
           // TODO
         } else {
-          fetch('api/cluster')
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.error != 'OK') {
-                // TODO
-              } else {
-                setInstances(data.members);
-              }
-            });
+          addLocalInstance({
+            name: name.value,
+            port: parseInt(port.value),
+            ip: '127.0.0.1',
+            id: data.id,
+            status: 'pending',
+          });
+          setInstances(getLocalInstances());
           fetch('api/letMeIn')
             .then((res) => res.json())
             .then((data) => {
@@ -186,10 +179,77 @@ function AddInstance({
   );
 }
 
+function getLocalInstances() {
+  return JSON.parse(localStorage.getItem('instances') || '[]');
+}
+
+function addLocalInstance({
+  name,
+  ip,
+  port,
+  status,
+  id,
+}: {
+  name: string;
+  ip: string;
+  port: number;
+  status: string;
+  id: string;
+}) {
+  localStorage.setItem(
+    'instances',
+    JSON.stringify([
+      ...getLocalInstances(),
+      {
+        name,
+        ip,
+        port,
+        status,
+        id,
+      },
+    ])
+  );
+}
+
+function rewriteLocalInstance(instances: ClusterMember[]) {
+  localStorage.setItem('instances', JSON.stringify(instances));
+}
+
 export default function Instances({
   response,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const [instances, setInstances] = useState<ClusterMember[]>(response.members);
+  const [instances, setInstances] = useState<ClusterMember[]>([]);
+  const [members, setMembers] = useState<ClusterMember[]>(response.members);
+
+  const updateMember = () => {
+    fetch('/api/cluster')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error != 'OK') {
+          // TODO
+        } else {
+          setMembers(data.members);
+          setInstances((prev) => {
+            const newLocalInstances = prev.map((instance) => {
+              const member = members.find((member) => member.id === instance.id);
+              if (member) {
+                return member;
+              } else {
+                return instance;
+              }
+            });
+            rewriteLocalInstance(newLocalInstances);
+            return newLocalInstances;
+          });
+        }
+      });
+  };
+  useEffect(() => {
+    setInstances(getLocalInstances());
+    updateMember();
+    const interval = setInterval(updateMember, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <>
