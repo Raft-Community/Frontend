@@ -47,9 +47,9 @@ model Elect {
 }
 
 model Vote {
-  id      String   @id @default(uuid())
   voter   Instance @relation(fields: [voterId], references: [id])
   voterId String
   elect   Elect    @relation(fields: [electId], references: [id])
   electId String
+  @@id ([voterId, electId])
 }

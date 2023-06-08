@@ -32,6 +32,25 @@ export async function postAcceptMemberChange({
       error: 'Missing electId or voterId',
     };
   }
+  
+  const vote = await prisma.vote.findFirst({
+    where: {
+      AND: [
+        {
+          electId: messageId,
+        },
+        {
+          voterId: id,
+        },
+      ]
+    },
+  });
+  
+  if (vote) {
+    return {
+      error: 'Already voted',
+    };
+  }
 
   await prisma.vote.create({
     data: {
