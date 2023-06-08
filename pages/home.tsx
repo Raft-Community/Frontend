@@ -222,6 +222,7 @@ function MemberList({
         targetServerIp,
         targetServerPort,
         targetServerId,
+        originServerId: router.query.id,
       }),
     })
       .then((res) => res.json())
@@ -266,11 +267,14 @@ function MemberList({
 }
 
 function SystemInfo({ messages }: { messages: Message[] }) {
-  function acceptChange(id: string) {
+  const router = useRouter();
+
+  function acceptChange({ messageId, id }: { messageId: string; id: string }) {
     fetch('/api/acceptMemberChange', {
       method: 'POST',
       body: JSON.stringify({
-        messageId: id,
+        messageId,
+        id,
       }),
     })
       .then((res) => res.json())
@@ -299,7 +303,12 @@ function SystemInfo({ messages }: { messages: Message[] }) {
                 <td className="border h-full w-full px-4 py-2 flex justify-around items-center">
                   <button
                     className="btn btn-success btn-sm"
-                    onClick={() => acceptChange(message.messageId)}
+                    onClick={() =>
+                      acceptChange({
+                        messageId: message.messageId,
+                        id: router.query.id as string,
+                      })
+                    }
                   >
                     Accept
                   </button>
