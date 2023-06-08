@@ -44,7 +44,7 @@ async function updateCluster() {
   
   const elects = await prisma.elect.findMany();
   
-  elects.forEach(async (elect) => {    
+  elects.forEach(async (elect) => {
     const electee = await prisma.instance.findUnique({
       where: {
         id: elect.electeeId,
@@ -74,54 +74,64 @@ async function updateCluster() {
     
     if (votes.length > onlineNumbers / 2 || onlineNumbers === 0) {
       if (electee.status === 'pending') {
-        await prisma.instance.update({
-          where: {
-            id: electee.id,
-          },
-          data: {
-            status: 'online',
-          },
-        });
-        await prisma.elect.deleteMany({
-          where: {
-            electeeId: electee.id,
-          },
-        });
-        await prisma.vote.deleteMany({
-          where: {
-            electId: elect.id,
-          },
-        });
+        console.log('update electee status', electee.name);
+        await prisma.$transaction([
+          prisma.instance.update({
+            where: {
+              id: electee.id,
+            },
+            data: {
+              status: 'online',
+            },
+          }),
+          prisma.vote.deleteMany({
+            where: {
+              electId: elect.id,
+            },
+          }),
+          prisma.elect.deleteMany({
+            where: {
+              electeeId: electee.id,
+            },
+          })
+        ]);
       } else if (electee.status === 'online') {
-        await prisma.instance.delete({
-          where: {
-            id: electee.id,
-          },
-        });
-        await prisma.elect.deleteMany({
-          where: {
-            OR: [
-              {
-                creatorId: electee.id,
-              },
-              {
-                electeeId: electee.id,
-              },
-            ],
-          },
-        });
-        await prisma.vote.deleteMany({
-          where: {
-            OR: [
-              {
-                electId: elect.id,
-              },
-              {
-                voterId: electee.id,
-              }
-            ]
-          },
-        }); 
+        await prisma.$transaction([
+          prisma.vote.deleteMany({
+            where: {
+              OR: [
+                {
+                  electId: elect.id,
+                },
+                {
+                  voterId: electee.id,
+                }
+              ]
+            },
+          }),
+          prisma.elect.deleteMany({
+            where: {
+              OR: [
+                {
+                  creatorId: electee.id,
+                },
+                {
+                  electeeId: electee.id,
+                },
+              ],
+            },
+          }),
+          prisma.blog.deleteMany({
+            where: {
+              authorId: electee.id,
+            }
+          }),
+          prisma.instance.delete({
+            where: {
+              id: electee.id,
+            },
+          })
+        ]);
       }
     }
     
