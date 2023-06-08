@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
 import { IGetClusterMember, ClusterMember, getCluster } from './api/cluster';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { ErrorHandlerContext } from './layout';
 
 export const getServerSideProps: GetServerSideProps<{
   response: IGetClusterMember;
@@ -63,6 +64,8 @@ function AddInstanceForm({
 }: {
   setInstances: React.Dispatch<React.SetStateAction<ClusterMember[]>>;
 }) {
+  const setErrorMessage = useContext(ErrorHandlerContext);
+  
   function postChange() {
     const [name, port, knownServerIp, knownServerPort] = [
       document.getElementById('name') as HTMLInputElement,
@@ -80,7 +83,7 @@ function AddInstanceForm({
       .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
-          // TODO
+          setErrorMessage(data.error);
         } else {
           addLocalInstance({
             name: name.value,
@@ -101,7 +104,7 @@ function AddInstanceForm({
             .then((res) => res.json())
             .then((data) => {
               if (data.error != 'OK') {
-                // TODO
+                setErrorMessage(data.error);
               }
             });
         }
@@ -236,13 +239,14 @@ export default function Instances({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [instances, setInstances] = useState<ClusterMember[]>([]);
   const [members, setMembers] = useState<ClusterMember[]>(response.members);
+  const setErrorMessage = useContext(ErrorHandlerContext);
 
   const updateMember = () => {
     fetch('/api/cluster')
       .then((res) => res.json())
       .then((data: IGetClusterMember) => {
         if (data.error != 'OK') {
-          // TODO
+          setErrorMessage(data.error);
         } else {
           setMembers(data.members);
           setInstances((prev) => {

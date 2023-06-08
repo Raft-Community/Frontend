@@ -4,7 +4,8 @@ import { useRouter } from 'next/router';
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
 import { IGetMessage, Message, getMessage } from './api/getMessage';
 import { ClusterMember } from './api/cluster';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { ErrorHandlerContext } from './layout';
 
 export const getServerSideProps: GetServerSideProps<{
   response: IGetMessage;
@@ -18,6 +19,7 @@ function SendPost({
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }) {
   const router = useRouter();
+  const setErrorMessage = useContext(ErrorHandlerContext);
 
   useEffect(() => {
     const interval = setInterval(updateMessage, 1000);
@@ -29,7 +31,7 @@ function SendPost({
       .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
-          // TODO
+          setErrorMessage(data.error);
         } else {
           setMessages(data.message);
         }
@@ -51,7 +53,7 @@ function SendPost({
       .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
-          // TODO
+          setErrorMessage(data.error);
         } else {
           updateMessage();
         }
@@ -184,12 +186,13 @@ function MemberList({
 }) {
   const router = useRouter();
   const [members, setMembers] = useState<ClusterMember[]>([]);
+  const setErrorMessage = useContext(ErrorHandlerContext);
   const updateMember = () => {
     fetch('/api/cluster')
       .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
-          // TODO
+          setErrorMessage(data.error);
         } else {
           setMembers(data.members);
           const id = router.query.id;
@@ -228,7 +231,7 @@ function MemberList({
       .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
-          // TODO
+          setErrorMessage(data.error);
         }
       });
   }
@@ -268,6 +271,7 @@ function MemberList({
 
 function SystemInfo({ messages }: { messages: Message[] }) {
   const router = useRouter();
+  const setErrorMessage = useContext(ErrorHandlerContext);
 
   function acceptChange({ messageId, id }: { messageId: string; id: string }) {
     fetch('/api/acceptMemberChange', {
@@ -280,7 +284,7 @@ function SystemInfo({ messages }: { messages: Message[] }) {
       .then((res) => res.json())
       .then((data) => {
         if (data.error != 'OK') {
-          // TODO
+          setErrorMessage(data.error);
         }
       });
   }
