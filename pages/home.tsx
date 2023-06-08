@@ -3,7 +3,8 @@
 import { useRouter } from 'next/router';
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
 import { IGetMessage, Message, getMessage } from './api/getMessage';
-import { useState } from 'react';
+import { ClusterMember } from './api/cluster';
+import { useEffect, useState } from 'react';
 
 export const getServerSideProps: GetServerSideProps<{
   response: IGetMessage;
@@ -11,8 +12,29 @@ export const getServerSideProps: GetServerSideProps<{
   return { props: { response: getMessage() } };
 };
 
-function SendPost({ setMessages }: { setMessages: React.Dispatch<React.SetStateAction<Message[]>>; }) {
+function SendPost({
+  setMessages,
+}: {
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}) {
   const router = useRouter();
+  
+  useEffect(() => {
+    const interval = setInterval(updateMessage, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  function updateMessage() {
+    fetch('/api/getMessage')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error != 'OK') {
+          // TODO
+        } else {
+          setMessages(data.message);
+        }
+      });
+  }
 
   function postBlog() {
     const content = document.querySelector('textarea')?.value;
@@ -31,17 +53,7 @@ function SendPost({ setMessages }: { setMessages: React.Dispatch<React.SetStateA
         if (data.error != 'OK') {
           // TODO
         } else {
-          // update message
-          fetch('/api/getMessage')
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.error != 'OK') {
-                // TODO
-              } else {
-                setMessages(data.message);
-              }
-            }
-          );
+          updateMessage();
         }
       });
   }
@@ -127,11 +139,13 @@ function BasicInfo({
   ip,
   port,
   id,
+  status,
 }: {
   name: string;
   ip: string;
   port: number;
   id: string;
+  status: string;
 }) {
   return (
     <table className="table-auto h-full w-full">
@@ -152,15 +166,50 @@ function BasicInfo({
         </tr>
         <tr>
           <td className="border px-4 py-2">status</td>
-          <td className="border px-4 py-2 text-green-500">online</td>
-          {/* <td className="border px-4 py-2 text-red-500">offline</td> */}
+          {status === 'online' ? (
+            <td className="border px-4 py-2 text-green-600">online</td>
+          ) : (
+            <td className="border px-4 py-2 text-orange-500">pending</td>
+          )}
         </tr>
       </tbody>
     </table>
   );
 }
 
-function MemberList() {
+function MemberList({
+  setStatus,
+}: {
+  setStatus: React.Dispatch<React.SetStateAction<string>>;
+}) {
+  const router = useRouter();
+  const [members, setMembers] = useState<ClusterMember[]>([]);
+  const updateMember = () => {
+    fetch('/api/cluster')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error != 'OK') {
+          // TODO
+        } else {
+          setMembers(data.members);
+          const id = router.query.id;
+          const member = data.members.find(
+            (member: ClusterMember) => member.id === id
+          );
+          if (member) {
+            setStatus(member.status);
+          } else {
+            setStatus('pending');
+          }
+        }
+      });
+  };
+  useEffect(() => {
+    updateMember();
+    const interval = setInterval(updateMember, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   function kickOffMember(id: string) {
     const {
       ip: targetServerIp,
@@ -183,11 +232,6 @@ function MemberList() {
       });
   }
 
-  const members = [
-    { id: '1', name: 'Instance 1', ip: '127.0.0.1', port: '2333' },
-    { id: '2', name: 'Instance 2', ip: '127.0.0.1', port: '2334' },
-    { id: '3', name: 'Instance 3', ip: '127.0.0.1', port: '2335' },
-  ];
   return (
     <div className="h-full w-full">
       <table className="table-auto h-full w-full">
@@ -198,19 +242,24 @@ function MemberList() {
           </tr>
         </thead>
         <tbody>
-          {members.map((member) => (
-            <tr key={member.id}>
-              <td className="border px-4 py-2">{member.name}</td>
-              <td className="border px-4 py-2 flex justify-center">
-                <button
-                  className="btn btn-error btn-sm"
-                  onClick={() => kickOffMember(member.id)}
-                >
-                  kick
-                </button>
-              </td>
-            </tr>
-          ))}
+          {members
+            .filter(
+              (member) =>
+                member.status != 'pending' && member.id != router.query.id
+            )
+            .map((member) => (
+              <tr key={member.id}>
+                <td className="border px-4 py-2">{member.name}</td>
+                <td className="border px-4 py-2 flex justify-center">
+                  <button
+                    className="btn btn-error btn-sm"
+                    onClick={() => kickOffMember(member.id)}
+                  >
+                    kick
+                  </button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>
@@ -269,6 +318,7 @@ export default function Home({
   response,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [messages, setMessages] = useState<Message[]>(response.message);
+  const [status, setStatus] = useState<string>('pending');
 
   const router = useRouter();
   const { name, ip, port, id } = router.query as unknown as {
@@ -280,7 +330,7 @@ export default function Home({
 
   return (
     <>
-      <div className="h-full w-full bg-base-100 flex flex-row">
+      <div className="h-full w-full bg-base-100 flex flex-row overflow-hidden">
         <div className="h-full w-2/3 flex flex-col overflow-y-scroll bg-base-200">
           <div className="h-1/3 w-full flex flex-col bg-base-100">
             <div className="h-1/6 w-full flex items-center sticky top-0 bg-base-300">
@@ -299,9 +349,21 @@ export default function Home({
         <div className="h-full w-1/3 grid grid-rows-3 grid-flow-col gap-4">
           <InfoCard
             title="Node Basic Info"
-            child={<BasicInfo id={id} name={name} ip={ip} port={port} />}
+            child={
+              <BasicInfo
+                id={id}
+                name={name}
+                ip={ip}
+                port={port}
+                status={status}
+              />
+            }
           />
-          <InfoCard title="Member List" scroll child={<MemberList />} />
+          <InfoCard
+            title="Member List"
+            scroll
+            child={<MemberList setStatus={setStatus} />}
+          />
           <InfoCard
             title="System Info"
             scroll

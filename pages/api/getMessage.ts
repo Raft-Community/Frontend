@@ -33,7 +33,37 @@ export function getMessage() {
         messageId: '3',
         content: 'Goodbye',
         type: 'normal',
-      }
+      },
+      {
+        messageId: '4',
+        content: 'want to kick',
+        type: 'memberChange',
+      },
+      {
+        messageId: '5',
+        content: 'qwq world',
+        type: 'normal',
+      },
+      {
+        messageId: '6',
+        content: 'qwqwq world',
+        type: 'normal',
+      },
+      {
+        messageId: '7',
+        content: 'qwqwqwq world',
+        type: 'normal',
+      },
+      {
+        messageId: '8',
+        content: 'qwqwqwqwq world',
+        type: 'normal',
+      },
+      {
+        messageId: '9',
+        content: 'kick the world',
+        type: 'memberChange',
+      },
     ],
   };
 }
