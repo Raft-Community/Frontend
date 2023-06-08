@@ -195,7 +195,7 @@ function AddInstance({
   );
 }
 
-function getLocalInstances() {
+function getLocalInstances(): ClusterMember[] {
   return JSON.parse(localStorage.getItem('instances') || '[]');
 }
 
@@ -240,23 +240,33 @@ export default function Instances({
   const updateMember = () => {
     fetch('/api/cluster')
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: IGetClusterMember) => {
         if (data.error != 'OK') {
           // TODO
         } else {
           setMembers(data.members);
           setInstances((prev) => {
-            const newLocalInstances = prev.map((instance) => {
-              const member = members.find(
-                (member) => member.id === instance.id
+            // const newLocalInstances = prev.map((instance) => {
+            //   const member = members.find(
+            //     (member) => member.id === instance.id
+            //   );
+            //   if (member) {
+            //     return member;
+            //   } else {
+            //     return instance;
+            //   }
+            // });
+            // console.log('local: ', getLocalInstances());
+            // console.log('members: ', data.members);
+            const newLocalInstances = getLocalInstances()
+              .filter((instance) =>
+                data.members.find((member) => member.id === instance.id)
+              )
+              .map((instance) =>
+                data.members.find((member) => member.id === instance.id)!
               );
-              if (member) {
-                return member;
-              } else {
-                return instance;
-              }
-            });
-            console.log(newLocalInstances);
+
+            // console.log('new: ', newLocalInstances);
             rewriteLocalInstance(newLocalInstances);
             return newLocalInstances;
           });
