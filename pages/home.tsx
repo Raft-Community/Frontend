@@ -201,6 +201,21 @@ function MemberList() {
 }
 
 function SystemInfo() {
+  function acceptChange(id: string) {
+    fetch('/api/acceptMemberChange', {
+      method: 'POST',
+      body: JSON.stringify({
+        messageId: id,
+      }),
+    }).then((res) => res.json())
+      .then((data) => {
+        if (data.error != 'OK') {
+          // TODO
+        }
+      }
+    );
+  }
+  
   const infos = [
     { id: '1', content: 'Instance 1 want to join' },
     { id: '2', content: 'Instance 2 want to kick Instance 3' },
@@ -220,7 +235,9 @@ function SystemInfo() {
             <tr key={info.id}>
               <td className="border px-4 py-2">{info.content}</td>
               <td className="border px-4 py-2 flex justify-around">
-                <button className="btn btn-success btn-sm">Accept</button>
+                <button className="btn btn-success btn-sm"
+                  onClick={() => acceptChange(info.id)}
+                >Accept</button>
                 <button className="btn btn-error btn-sm">Reject</button>
               </td>
             </tr>
