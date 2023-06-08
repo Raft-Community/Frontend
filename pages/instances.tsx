@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 export const getServerSideProps: GetServerSideProps<{
   response: IGetClusterMember;
 }> = async () => {
-  return { props: { response: getCluster() } };
+  return { props: { response: await getCluster() } };
 };
 
 function InstanceCard({
@@ -245,6 +245,7 @@ export default function Instances({
                 return instance;
               }
             });
+            console.log(newLocalInstances);
             rewriteLocalInstance(newLocalInstances);
             return newLocalInstances;
           });
