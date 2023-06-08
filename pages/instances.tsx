@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
-import { IGetClusterMember, getCluster } from './api/cluster';
+import { IGetClusterMember, ClusterMember, getCluster } from './api/cluster';
+import { useState } from 'react';
 
 export const getServerSideProps: GetServerSideProps<{
   response: IGetClusterMember;
@@ -15,11 +16,13 @@ function InstanceCard({
   ip,
   port,
   id,
+  status,
 }: {
   name: string;
   ip: string;
   port: number;
   id: string;
+  status: string;
 }) {
   return (
     <div className="card h-56 bg-base-300 shadow-xl">
@@ -29,29 +32,89 @@ function InstanceCard({
       >
         <div className="card-body">
           <h1 className="card-title">{name}</h1>
-          <p className="card-text">Instance id: {id}</p>
-          <p className="card-text">IP: 127.0.0.1</p>
-          <p className="card-text">Port: 2333</p>
+          <p className="card-text">ID: {id}</p>
+          <p className="card-text">IP: {ip}</p>
+          <p className="card-text">Port: {port}</p>
+          <p className="card-text">
+            Status:&nbsp;
+            {status === 'online' ? (
+              <span className="text-green-600">Online</span>
+            ) : (
+              <span className="text-orange-500">Pending</span>
+            )}
+          </p>
         </div>
       </Link>
     </div>
   );
 }
 
-function AddInstanceForm() {
+function AddInstanceForm({
+  setInstances,
+}: {
+  setInstances: React.Dispatch<React.SetStateAction<ClusterMember[]>>;
+}) {
+  function postChange() {
+    const [name, port, knownServerIp, knownServerPort] = [
+      document.getElementById('name') as HTMLInputElement,
+      document.getElementById('port') as HTMLInputElement,
+      document.getElementById('knownServerIp') as HTMLInputElement,
+      document.getElementById('knownServerPort') as HTMLInputElement,
+    ];
+    console.log(
+      name.value,
+      port.value,
+      knownServerIp.value,
+      knownServerPort.value
+    );
+    fetch('/api/createNewNode', {
+      method: 'POST',
+      body: JSON.stringify({
+        port: parseInt(port.value),
+        name: name.value,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error != 'OK') {
+          // TODO
+        } else {
+          fetch('api/cluster')
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.error != 'OK') {
+                // TODO
+              } else {
+                setInstances(data.members);
+              }
+            });
+          fetch('api/letMeIn')
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.error != 'OK') {
+                // TODO
+              }
+            });
+        }
+      });
+  }
+
   return (
     <form method="dialog" className="modal-box">
       <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
         ✕
       </button>
       <h3 className="font-bold text-lg">Add an Instance Here</h3>
-      <div className="">
-        <label htmlFor="ip" className="text-gray-700 font-semibold mb-2 block">
-          IP
+      <div>
+        <label
+          htmlFor="name"
+          className="text-gray-700 font-semibold mb-2 block"
+        >
+          Name
         </label>
         <input
           type="text"
-          id="ip"
+          id="name"
           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-primary"
         />
       </div>
@@ -63,13 +126,39 @@ function AddInstanceForm() {
           Port
         </label>
         <input
-          type="text"
+          type="number"
           id="port"
           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-primary"
         />
       </div>
+      <div>
+        <label
+          htmlFor="knownServerIp"
+          className="text-gray-700 font-semibold mb-2 block"
+        >
+          Known Server IP
+        </label>
+        <input
+          type="text"
+          id="knownServerIp"
+          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-primary"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="knownServerPort"
+          className="text-gray-700 font-semibold mb-2 block"
+        >
+          Known Server Port
+        </label>
+        <input
+          type="number"
+          id="knownServerPort"
+          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-primary"
+        />
+      </div>
       <div className="modal-action">
-        <button className="btn btn-primary" type="submit">
+        <button className="btn btn-primary" type="submit" onClick={postChange}>
           Submit
         </button>
       </div>
@@ -77,7 +166,11 @@ function AddInstanceForm() {
   );
 }
 
-function AddInstance() {
+function AddInstance({
+  setInstances,
+}: {
+  setInstances: React.Dispatch<React.SetStateAction<ClusterMember[]>>;
+}) {
   return (
     <div className="card h-56 flex justify-center items-center">
       <button
@@ -87,7 +180,7 @@ function AddInstance() {
         Add an instance
       </button>
       <dialog id="addInstance" className="modal">
-        <AddInstanceForm />
+        <AddInstanceForm setInstances={setInstances} />
       </dialog>
     </div>
   );
@@ -96,7 +189,7 @@ function AddInstance() {
 export default function Instances({
   response,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const instances = response.members;
+  const [instances, setInstances] = useState<ClusterMember[]>(response.members);
 
   return (
     <>
@@ -110,10 +203,11 @@ export default function Instances({
                 id={instance.id}
                 ip={instance.ip}
                 port={instance.port}
+                status={instance.status}
                 key={instance.id}
               />
             ))}
-            <AddInstance />
+            <AddInstance setInstances={setInstances} />
           </div>
         </div>
       </div>
