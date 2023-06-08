@@ -22,7 +22,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 export async function getCluster() {
   await updateCluster();
-  const instances = await prisma.instance.findMany();
+  const instances = await prisma.instance.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
   return {
     error: 'OK',
     members: instances.map((instance) => ({

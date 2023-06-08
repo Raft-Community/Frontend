@@ -22,8 +22,16 @@ export default async function handler(
 }
 
 export async function getMessage() {
-  const blogs = await prisma.blog.findMany();
-  const elects = await prisma.elect.findMany();
+  const blogs = await prisma.blog.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+  const elects = await prisma.elect.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
   return {
     error: 'OK',
     message: [
