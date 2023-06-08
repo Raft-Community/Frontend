@@ -81,7 +81,14 @@ function AddInstanceForm({
             status: 'pending',
           });
           setInstances(getLocalInstances());
-          fetch('api/letMeIn')
+          fetch('api/letMeIn', {
+            method: 'POST',
+            body: JSON.stringify({
+              knownServerIp: knownServerIp.value,
+              knownServerPort: parseInt(knownServerPort.value),
+              id: data.id,
+            }),
+          })
             .then((res) => res.json())
             .then((data) => {
               if (data.error != 'OK') {
