@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 export const getServerSideProps: GetServerSideProps<{
   response: IGetMessage;
 }> = async () => {
-  return { props: { response: getMessage() } };
+  return { props: { response: await getMessage() } };
 };
 
 function SendPost({
@@ -85,7 +85,7 @@ function Posts({ messages }: { messages: Message[] }) {
   );
 }
 
-function PostCard({ content }: { content: string }) {
+function PostCard({ content }: { content: string | null }) {
   return (
     <div className="card lg:card-side shadow-xl my-2 bg-base-100">
       <figure>
