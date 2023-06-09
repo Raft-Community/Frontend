@@ -101,7 +101,7 @@ function PostCard({ content }: { content: string | null }) {
         </picture>
       </figure>
       <div className="card-body">
-        <h2 className="card-title">New album is released!</h2>
+        <h2 className="card-title">New blog posted!</h2>
         <p>{content}</p>
         {/* <div className="card-actions justify-end">
           <button className="btn btn-primary">Listen</button>
