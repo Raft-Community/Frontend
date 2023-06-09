@@ -12,7 +12,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log(req.headers);
   const params = JSON.parse(req.body);
   const originIp =
     req.headers['x-forwarded-for'] instanceof Array

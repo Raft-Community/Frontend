@@ -149,6 +149,16 @@ function BasicInfo({
   id: string;
   status: string;
 }) {
+  const router = useRouter();
+  const [preStatus, setPreStatus] = useState(status);
+  useEffect(() => {
+    if (preStatus === 'online' && status === 'pending') {
+      router.back();
+    } else {
+      setPreStatus(status);
+    }
+  }, [status]);
+  
   return (
     <table className="table-auto h-full w-full">
       <tbody>
