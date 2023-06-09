@@ -14,3 +14,7 @@ pnpm install
 pnpm db
 pnpm dev
 ```
+
+图片与代码完全无关：
+
+![](https://cdn.staticaly.com/gh/ERUIHNIYHBKBNF/picapica@main/frontend/978A93A62EA00970B766F5D0AACDAC64.4oe5ec2zgho0.webp)
