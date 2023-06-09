@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { postLetMeIn } from './letMeIn';
 
 const prisma = new PrismaClient();
 
@@ -47,6 +48,12 @@ export async function postCreateNewNode({
       port,
       ip,
     },
+  });
+  
+  await postLetMeIn({
+    knownServerIp: 'qwq',
+    knownServerPort: 2333,
+    id: res.id,
   });
 
   return {
